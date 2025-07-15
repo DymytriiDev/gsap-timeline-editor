@@ -72,7 +72,7 @@ export const generateTimelineCode = (timeline: Timeline): string => {
   // Sort keyframes by delay
   const sortedKeyframes = [...timeline.keyframes].sort((a, b) => a.delay - b.delay);
   
-  sortedKeyframes.forEach((keyframe, index) => {
+  sortedKeyframes.forEach((keyframe) => {
     const transformProps: string[] = [];
     
     keyframe.transforms.forEach((transform) => {

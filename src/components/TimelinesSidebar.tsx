@@ -56,7 +56,7 @@ export function TimelinesSidebar() {
     setIsAddDialogOpen(false);
   };
 
-  const handleStartEdit = (timeline: any) => {
+  const handleStartEdit = (timeline: { id: string; name: string }) => {
     setEditingId(timeline.id);
     setEditingName(timeline.name);
   };

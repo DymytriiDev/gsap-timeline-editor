@@ -16,7 +16,7 @@ export function Header() {
     try {
       downloadTimelines(timelines);
       toast.success('Timelines exported successfully!');
-    } catch (error) {
+    } catch (_error) {
       toast.error('Failed to export timelines');
     }
   };

@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
-import { Play, Pause, Square, Plus, ZoomIn, ZoomOut, Edit2, Trash2 } from 'lucide-react';
+import { useState, useRef } from 'react';
+import { Play, Pause, Square, Plus, ZoomIn, ZoomOut, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';

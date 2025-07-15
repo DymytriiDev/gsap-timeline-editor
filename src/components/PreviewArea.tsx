@@ -83,7 +83,7 @@ export function PreviewArea() {
     activeTimeline.keyframes
       .sort((a, b) => a.delay - b.delay)
       .forEach((keyframe) => {
-        const transformProps: any = {};
+        const transformProps: Record<string, number | string> = {};
         
         keyframe.transforms.forEach((transform) => {
           switch (transform.type) {
@@ -157,7 +157,7 @@ export function PreviewArea() {
     }
     
     timelineRef.current = createGSAPTimeline();
-  }, [activeTimeline]);
+  }, [activeTimeline, createGSAPTimeline]);
 
   useEffect(() => {
     if (timelineRef.current) {
