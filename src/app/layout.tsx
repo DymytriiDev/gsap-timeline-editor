@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { ToastContainer } from 'react-toastify';
+import { ToastContainer } from "react-toastify";
+import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
-import 'react-toastify/dist/ReactToastify.css';
+import "react-toastify/dist/ReactToastify.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -42,6 +43,7 @@ export default function RootLayout({
           pauseOnHover
           theme="dark"
         />
+        <Analytics />
       </body>
     </html>
   );

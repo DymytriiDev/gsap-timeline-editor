@@ -157,7 +157,12 @@ export function PreviewArea() {
     }
     
     timelineRef.current = createGSAPTimeline();
-  }, [activeTimeline, createGSAPTimeline]);
+    
+    // If isPlaying is true, play the timeline immediately after creation
+    if (timelineRef.current && isPlaying) {
+      timelineRef.current.play();
+    }
+  }, [activeTimeline, targetShape]);
 
   useEffect(() => {
     if (timelineRef.current) {
