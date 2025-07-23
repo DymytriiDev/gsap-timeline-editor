@@ -111,6 +111,7 @@ export function TimelineEditor() {
     startDuration: number;
   } | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [didDrag, setDidDrag] = useState(false);
 
   const timelineRef = useRef<HTMLDivElement>(null);
   const activeTimeline = getActiveTimeline();
@@ -176,6 +177,8 @@ export function TimelineEditor() {
     );
     if (!keyframe) return;
 
+    setDidDrag(true);
+
     // Minimum step size in milliseconds
     const minStepMs = 50;
 
@@ -200,6 +203,8 @@ export function TimelineEditor() {
   const handleMouseUp = () => {
     setDragOperation(null);
     setIsDragging(false);
+    // Reset didDrag after a short delay to allow the click event to be suppressed
+    setTimeout(() => setDidDrag(false), 0);
   };
 
   // Add and remove event listeners
@@ -511,6 +516,25 @@ export function TimelineEditor() {
       {/* Controls */}
       <div className="border-b border-border p-4">
         <div className="flex justify-between items-center gap-4">
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setZoom(Math.max(0.5, zoom - 0.25))}
+            >
+              <ZoomOut className="h-4 w-4" />
+            </Button>
+            <span className="text-sm text-muted-foreground">
+              {Math.round(zoom * 100)}%
+            </span>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setZoom(Math.min(3, zoom + 0.25))}
+            >
+              <ZoomIn className="h-4 w-4" />
+            </Button>
+          </div>
           <div className="flex gap-2">
             <Button
               size="sm"
@@ -532,26 +556,6 @@ export function TimelineEditor() {
               }}
             >
               <Square className="h-4 w-4" />
-            </Button>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => setZoom(Math.max(0.5, zoom - 0.25))}
-            >
-              <ZoomOut className="h-4 w-4" />
-            </Button>
-            <span className="text-sm text-muted-foreground">
-              {Math.round(zoom * 100)}%
-            </span>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => setZoom(Math.min(3, zoom + 0.25))}
-            >
-              <ZoomIn className="h-4 w-4" />
             </Button>
           </div>
 
@@ -741,60 +745,67 @@ export function TimelineEditor() {
                       : "ew-resize"
                     : "pointer",
                 }}
-                onClick={(e) => {
-                  if (!isDragging) handleEditKeyframe(keyframe);
-                }}
-                onMouseDown={(e) => {
-                  // If clicking near the right edge, initiate resize, otherwise move
-                  const rect = e.currentTarget.getBoundingClientRect();
-                  const rightEdgeThreshold = 10; // pixels from right edge to trigger resize
-
-                  if (e.clientX > rect.right - rightEdgeThreshold) {
-                    handleMouseDown(e, keyframe, "resize");
-                  } else {
-                    handleMouseDown(e, keyframe, "move");
-                  }
-                }}
               >
-                <div className="absolute inset-0 flex flex-col p-1 overflow-hidden">
-                  <div className="flex justify-start items-center">
-                    <span
-                      className="text-xxs font-medium text-primary"
-                      suppressHydrationWarning
-                    >
-                      {keyframe.duration}ms / {keyframe.easing}
-                    </span>
-                  </div>
-                  <div className="flex items-center mt-1">
-                    <span
-                      className="text-xxs text-primary font-medium bg-primary/10 px-1 rounded"
-                      suppressHydrationWarning
-                    >
-                      {keyframe.transforms.length} transforms
-                    </span>
-                  </div>
-                </div>
-                {/* Resize handles */}
                 <div
-                  className="absolute top-0 bottom-0 right-0 w-1 bg-primary opacity-0 group-hover:opacity-100 cursor-ew-resize transition-opacity"
-                  onMouseDown={(e) => handleMouseDown(e, keyframe, "resize")}
-                />
-                <div
-                  className="absolute top-0 bottom-0 left-0 w-1 bg-primary opacity-0 group-hover:opacity-100 cursor-ew-resize transition-opacity"
-                  onMouseDown={(e) => handleMouseDown(e, keyframe, "move")}
-                />
-                <div className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    className="h-6 w-6 p-0"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      deleteKeyframe(activeTimeline.id, keyframe.id);
-                    }}
-                  >
-                    <Trash2 className="h-2 w-2" />
-                  </Button>
+                  className="h-full bg-primary/20 border border-primary rounded-lg cursor-grab active:cursor-grabbing relative group"
+                  onMouseDown={(e) => {
+                    const rect = e.currentTarget.getBoundingClientRect();
+                    const rightEdgeThreshold = 10; // pixels from right edge to trigger resize
+
+                    if (e.clientX > rect.right - rightEdgeThreshold) {
+                      handleMouseDown(e, keyframe, "resize");
+                    } else {
+                      handleMouseDown(e, keyframe, "move");
+                    }
+                  }}
+                  onClick={() => {
+                    if (didDrag) return;
+                    handleEditKeyframe(keyframe);
+                  }}
+                >
+                  <div className="absolute inset-0 flex flex-col p-1 overflow-hidden">
+                    <div className="flex justify-start items-center">
+                      <span
+                        className="text-xxs font-medium text-primary"
+                        suppressHydrationWarning
+                      >
+                        {keyframe.duration}ms / {keyframe.easing}
+                      </span>
+                    </div>
+                    <div className="flex items-center mt-1">
+                      <span
+                        className="text-xxs text-primary font-medium bg-primary/10 px-1 rounded"
+                        suppressHydrationWarning
+                      >
+                        {keyframe.transforms.length} transforms
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Resize handles */}
+                  <div
+                    className="absolute top-0 bottom-0 left-0 w-2 cursor-ew-resize opacity-0 group-hover:opacity-100 transition-opacity"
+                    onMouseDown={(e) => handleMouseDown(e, keyframe, "resize")}
+                  />
+                  <div
+                    className="absolute top-0 bottom-0 right-0 w-2 cursor-ew-resize opacity-0 group-hover:opacity-100 transition-opacity"
+                    onMouseDown={(e) => handleMouseDown(e, keyframe, "resize")}
+                  />
+                  <div className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="h-5 w-5 text-destructive"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (activeTimeline) {
+                          deleteKeyframe(activeTimeline.id, keyframe.id);
+                        }
+                      }}
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                  </div>
                 </div>
               </div>
             ))}
