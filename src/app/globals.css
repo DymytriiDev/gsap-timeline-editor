@@ -60,3 +60,7 @@
     @apply dark;
   }
 }
+
+.text-xs {
+  font-size: 0.5rem !important;
+}

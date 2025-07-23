@@ -727,7 +727,7 @@ export function TimelineEditor() {
             {activeTimeline.keyframes.map((keyframe) => (
               <div
                 key={keyframe.id}
-                className={`absolute top-2 bottom-2 bg-primary/80 rounded hover:bg-primary group ${
+                className={`absolute top-2 bottom-2 border-2 border-primary bg-primary/20 rounded hover:bg-primary/30 group ${
                   isDragging && dragOperation?.keyframeId === keyframe.id
                     ? "opacity-70"
                     : ""
@@ -756,28 +756,36 @@ export function TimelineEditor() {
                   }
                 }}
               >
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <span
-                    className="text-xs text-primary-foreground font-medium"
-                    suppressHydrationWarning
-                  >
-                    {keyframe.transforms.length}
-                  </span>
+                <div className="absolute inset-0 flex flex-col p-1 overflow-hidden">
+                  <div className="flex justify-start items-center">
+                    <span
+                      className="text-xs font-medium text-primary"
+                      suppressHydrationWarning
+                    >
+                      {keyframe.duration}ms / {keyframe.easing}
+                    </span>
+                  </div>
+                  <div className="flex items-center mt-1">
+                    <span
+                      className="text-xs text-primary font-medium bg-primary/10 px-1 rounded"
+                      suppressHydrationWarning
+                    >
+                      {keyframe.transforms.length} transforms
+                    </span>
+                  </div>
                 </div>
-                {/* Resize handle */}
+                {/* Resize handles */}
                 <div
-                  className={`absolute top-0 bottom-0 right-0 w-2 cursor-ew-resize ${
-                    isDragging &&
-                    dragOperation?.keyframeId === keyframe.id &&
-                    dragOperation?.type === "resize"
-                      ? "bg-white/30"
-                      : ""
-                  }`}
+                  className="absolute top-0 bottom-0 right-0 w-1 bg-primary opacity-0 group-hover:opacity-100 cursor-ew-resize transition-opacity"
                   onMouseDown={(e) => handleMouseDown(e, keyframe, "resize")}
+                />
+                <div
+                  className="absolute top-0 bottom-0 left-0 w-1 bg-primary opacity-0 group-hover:opacity-100 cursor-ew-resize transition-opacity"
+                  onMouseDown={(e) => handleMouseDown(e, keyframe, "move")}
                 />
                 <div className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity">
                   <Button
-                    size="sm"
+                    size="icon"
                     variant="ghost"
                     className="h-6 w-6 p-0"
                     onClick={(e) => {
@@ -785,7 +793,7 @@ export function TimelineEditor() {
                       deleteKeyframe(activeTimeline.id, keyframe.id);
                     }}
                   >
-                    <Trash2 className="h-3 w-3" />
+                    <Trash2 className="h-2 w-2" />
                   </Button>
                 </div>
               </div>

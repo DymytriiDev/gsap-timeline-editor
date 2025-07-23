@@ -252,32 +252,6 @@ export function TimelinesSidebar() {
                     <Button
                       size="sm"
                       variant="ghost"
-                      className={timeline.loop ? "text-primary" : "text-muted-foreground"}
-                      title={timeline.loop ? "Disable loop" : "Enable loop"}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        updateTimeline(timeline.id, { loop: !timeline.loop });
-                      }}
-                    >
-                      <Repeat className="h-3 w-3" />
-                    </Button>
-                    {timeline.loop && (
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className={timeline.yoyo ? "text-primary" : "text-muted-foreground"}
-                        title={timeline.yoyo ? "Disable yo-yo" : "Enable yo-yo"}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          updateTimeline(timeline.id, { yoyo: !timeline.yoyo });
-                        }}
-                      >
-                        <RefreshCw className="h-3 w-3" />
-                      </Button>
-                    )}
-                    <Button
-                      size="sm"
-                      variant="ghost"
                       onClick={(e) => {
                         e.stopPropagation();
                         handleStartEdit(timeline);

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef } from "react";
-import { Star, Download, Upload, Code } from "lucide-react";
+import { Star, Download, Upload, Code, CircleDollarSign } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTimelineStore } from "@/stores/timeline-store";
 import {
@@ -132,6 +132,20 @@ export function Header() {
           >
             <Star className="h-4 w-4" />
             Star on GitHub
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="gap-2"
+            onClick={() =>
+              window.open(
+                "https://github.com/DymytriiDev/gsap-timeline-editor",
+                "_blank"
+              )
+            }
+          >
+            <CircleDollarSign className="h-4 w-4" />
+            Buy me a coffee
           </Button>
         </div>
       </div>
