@@ -79,35 +79,56 @@ const createDemoTimeline = (): Timeline => ({
   name: 'Demo Timeline',
   playbackType: 'normal',
   loop: true,
-  yoyo: false,
+  yoyo: true,
   keyframes: [
     {
-      id: 'demo-keyframe-1',
+      id: "demo-keyframe-1",
       delay: 0,
-      duration: 1000,
-      easing: 'power2.inOut',
+      duration: 1600,
+      easing: "power2.inOut",
       transforms: [
         {
-          id: 'demo-transform-1',
-          type: 'opacity',
-          values: { opacity: 0.3 }
-        }
-      ]
+          id: "demo-transform-1",
+          type: "opacity",
+          values: {
+            opacity: 0.6,
+          },
+        },
+        {
+          id: "esbiyvq4x",
+          type: "scale",
+          values: {
+            scaleX: 1,
+            scaleY: 1.5,
+          },
+        },
+        {
+          id: "7eqo3w3bk",
+          type: "skew",
+          values: {
+            skewX: -20,
+            skewY: 0,
+          },
+        },
+      ],
     },
     {
-      id: 'demo-keyframe-2',
-      delay: 1,
+      delay: 0.992,
       duration: 1000,
-      easing: 'power2.inOut',
+      easing: "power2.inOut",
       transforms: [
         {
-          id: 'demo-transform-2',
-          type: 'opacity',
-          values: { opacity: 1 }
-        }
-      ]
-    }
-  ]
+          id: "enbk1ik69",
+          type: "filter",
+          values: {
+            filter: "blur",
+            value: 10,
+          },
+        },
+      ],
+      id: "e09fqrlxw",
+    },
+  ],
 });
 
 export const useTimelineStore = create<TimelineState>()(
@@ -115,7 +136,7 @@ export const useTimelineStore = create<TimelineState>()(
     (set, get) => ({
       timelines: [createDemoTimeline()],
       activeTimelineId: 'demo',
-      targetShape: 'square',
+      targetShape: 'zap',
       isPlaying: false,
       currentTime: 0,
       zoom: 1,
