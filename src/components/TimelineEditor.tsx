@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Play, Pause, Square, Plus, ZoomIn, ZoomOut, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -50,9 +50,100 @@ export function TimelineEditor() {
     easing: 'power2.inOut',
     transforms: [] as Transform[]
   });
+  
+  // Drag and resize state
+  const [dragOperation, setDragOperation] = useState<{
+    type: 'move' | 'resize';
+    keyframeId: string;
+    startX: number;
+    startDelay: number;
+    startDuration: number;
+  } | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
 
   const timelineRef = useRef<HTMLDivElement>(null);
   const activeTimeline = getActiveTimeline();
+  
+  // Handle mouse events for drag and resize
+  const handleMouseDown = (e: React.MouseEvent, keyframe: Keyframe, type: 'move' | 'resize') => {
+    e.stopPropagation();
+    if (!timelineRef.current) return;
+    
+    const rect = timelineRef.current.getBoundingClientRect();
+    const startX = e.clientX - rect.left;
+    
+    setDragOperation({
+      type,
+      keyframeId: keyframe.id,
+      startX,
+      startDelay: keyframe.delay,
+      startDuration: keyframe.duration
+    });
+    setIsDragging(true);
+  };
+  
+  // Helper function to snap value to grid with minimum step size
+  const snapToGrid = (value: number, stepSize: number, isTime: boolean = false) => {
+    // Convert to ms for time values to ensure precision
+    const valueInMs = isTime ? value * 1000 : value;
+    const stepSizeInMs = isTime ? stepSize : stepSize;
+    
+    // Snap to nearest step with minimum of stepSize
+    const snapped = Math.round(valueInMs / stepSizeInMs) * stepSizeInMs;
+    
+    // Convert back to seconds for time values
+    return isTime ? snapped / 1000 : snapped;
+  };
+  
+  const handleMouseMove = (e: MouseEvent) => {
+    if (!isDragging || !dragOperation || !timelineRef.current || !activeTimeline) return;
+    
+    const rect = timelineRef.current.getBoundingClientRect();
+    const currentX = e.clientX - rect.left;
+    const deltaX = currentX - dragOperation.startX;
+    
+    // Convert pixel delta to time delta based on zoom level and total duration
+    const pixelsPerSecond = (rect.width / totalDuration);
+    const timeDelta = deltaX / pixelsPerSecond;
+    
+    const keyframe = activeTimeline.keyframes.find(k => k.id === dragOperation.keyframeId);
+    if (!keyframe) return;
+    
+    // Minimum step size in milliseconds
+    const minStepMs = 50;
+    
+    if (dragOperation.type === 'move') {
+      // Update delay (position) with snapping
+      const rawNewDelay = Math.max(0, dragOperation.startDelay + timeDelta);
+      // Snap to grid with minimum step of 50ms (0.05s)
+      const newDelay = snapToGrid(rawNewDelay, minStepMs / 1000, true);
+      updateKeyframe(activeTimeline.id, keyframe.id, { delay: newDelay });
+    } else if (dragOperation.type === 'resize') {
+      // Update duration with snapping
+      const rawNewDuration = Math.max(minStepMs, dragOperation.startDuration + (timeDelta * 1000));
+      // Snap to grid with minimum step of 50ms
+      const newDuration = snapToGrid(rawNewDuration, minStepMs, false);
+      updateKeyframe(activeTimeline.id, keyframe.id, { duration: newDuration });
+    }
+  };
+  
+  const handleMouseUp = () => {
+    setDragOperation(null);
+    setIsDragging(false);
+  };
+  
+  // Add and remove event listeners
+  useEffect(() => {
+    if (isDragging) {
+      window.addEventListener('mousemove', handleMouseMove);
+      window.addEventListener('mouseup', handleMouseUp);
+    }
+    
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDragging, dragOperation]);
 
   const getLastKeyframeEnd = () => {
     if (!activeTimeline || activeTimeline.keyframes.length === 0) return 0;
@@ -87,6 +178,8 @@ export function TimelineEditor() {
         return { opacity: 1 };
       case 'skew':
         return { skewX: 0, skewY: 0 };
+      case 'scale':
+        return { scaleX: 1, scaleY: 1 };
       case 'filter':
         return { filter: 'blur', value: 0 };
       default:
@@ -175,6 +268,35 @@ export function TimelineEditor() {
                 onChange={(e) => updateTransform(transform.id, { 
                   ...transform.values, 
                   y: parseFloat(e.target.value) || 0 
+                })}
+              />
+            </div>
+          </div>
+        );
+      case 'scale':
+        return (
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <Label>Scale X</Label>
+              <Input
+                type="number"
+                step="0.1"
+                value={transform.values.scaleX as number}
+                onChange={(e) => updateTransform(transform.id, { 
+                  ...transform.values, 
+                  scaleX: parseFloat(e.target.value) || 1 
+                })}
+              />
+            </div>
+            <div>
+              <Label>Scale Y</Label>
+              <Input
+                type="number"
+                step="0.1"
+                value={transform.values.scaleY as number}
+                onChange={(e) => updateTransform(transform.id, { 
+                  ...transform.values, 
+                  scaleY: parseFloat(e.target.value) || 1 
                 })}
               />
             </div>
@@ -346,7 +468,8 @@ export function TimelineEditor() {
                     <Label>Delay (s)</Label>
                     <Input
                       type="number"
-                      step="0.1"
+                      step="0.01"
+                      min="0"
                       value={keyframeForm.delay}
                       onChange={(e) => setKeyframeForm(prev => ({ 
                         ...prev, 
@@ -398,6 +521,7 @@ export function TimelineEditor() {
                         <SelectItem value="rotate">Rotate</SelectItem>
                         <SelectItem value="opacity">Opacity</SelectItem>
                         <SelectItem value="skew">Skew</SelectItem>
+                        <SelectItem value="scale">Scale</SelectItem>
                         <SelectItem value="filter">Filter</SelectItem>
                       </SelectContent>
                     </Select>
@@ -476,18 +600,37 @@ export function TimelineEditor() {
             {activeTimeline.keyframes.map((keyframe) => (
               <div
                 key={keyframe.id}
-                className="absolute top-2 bottom-2 bg-primary/80 rounded cursor-pointer hover:bg-primary group"
+                className={`absolute top-2 bottom-2 bg-primary/80 rounded hover:bg-primary group ${isDragging && dragOperation?.keyframeId === keyframe.id ? 'opacity-70' : ''}`}
                 style={{
                   left: `${(keyframe.delay / totalDuration) * 100}%`,
-                  width: `${((keyframe.duration / 1000) / totalDuration) * 100}%`
+                  width: `${((keyframe.duration / 1000) / totalDuration) * 100}%`,
+                  cursor: isDragging ? (dragOperation?.type === 'move' ? 'grabbing' : 'ew-resize') : 'pointer'
                 }}
-                onClick={() => handleEditKeyframe(keyframe)}
+                onClick={(e) => {
+                  if (!isDragging) handleEditKeyframe(keyframe);
+                }}
+                onMouseDown={(e) => {
+                  // If clicking near the right edge, initiate resize, otherwise move
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  const rightEdgeThreshold = 10; // pixels from right edge to trigger resize
+                  
+                  if (e.clientX > rect.right - rightEdgeThreshold) {
+                    handleMouseDown(e, keyframe, 'resize');
+                  } else {
+                    handleMouseDown(e, keyframe, 'move');
+                  }
+                }}
               >
                 <div className="absolute inset-0 flex items-center justify-center">
                   <span className="text-xs text-primary-foreground font-medium">
                     {keyframe.transforms.length}
                   </span>
                 </div>
+                {/* Resize handle */}
+                <div 
+                  className={`absolute top-0 bottom-0 right-0 w-2 cursor-ew-resize ${isDragging && dragOperation?.keyframeId === keyframe.id && dragOperation?.type === 'resize' ? 'bg-white/30' : ''}`}
+                  onMouseDown={(e) => handleMouseDown(e, keyframe, 'resize')}
+                />
                 <div className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity">
                   <Button
                     size="sm"

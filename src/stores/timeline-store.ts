@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-export type TransformType = 'move' | 'rotate' | 'opacity' | 'skew' | 'filter';
+export type TransformType = 'move' | 'rotate' | 'opacity' | 'skew' | 'filter' | 'scale';
 
 export interface Transform {
   id: string;
