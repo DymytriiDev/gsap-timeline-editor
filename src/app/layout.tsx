@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "GSAP Timeline Editor",
-  description: "Create, edit, and preview GSAP animations with ease",
+  description: "Create, edit, preview and share GSAP animations with ease",
 };
 
 export default function RootLayout({
