@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef } from "react";
+import Link from "next/link";
 import { Star, Download, Upload, Code, CircleDollarSign } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTimelineStore } from "@/stores/timeline-store";
@@ -119,31 +120,16 @@ export function Header() {
             Export Code
           </Button>
 
-          <Button
-            variant="ghost"
-            size="sm"
-            className="gap-2"
-            onClick={() =>
-              window.open(
-                "https://github.com/DymytriiDev/gsap-timeline-editor",
-                "_blank"
-              )
-            }
+          <Link
+            href="https://github.com/DymytriiDev/gsap-timeline-editor"
+            target="_blank"
           >
-            <Star className="h-4 w-4" />
-            Star on GitHub
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="gap-2"
-            onClick={() =>
-              window.open(
-                "https://github.com/DymytriiDev/gsap-timeline-editor",
-                "_blank"
-              )
-            }
-          >
+            <Button variant="ghost" size="sm" className="gap-2">
+              <Star className="h-4 w-4" />
+              Star on GitHub
+            </Button>
+          </Link>
+          <Button variant="ghost" size="sm" className="gap-2">
             <CircleDollarSign className="h-4 w-4" />
             Buy me a coffee
           </Button>
