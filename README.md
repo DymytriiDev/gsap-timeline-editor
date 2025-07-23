@@ -1,36 +1,39 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# GSAP Timeline Editor
 
-## Getting Started
+Create, edit, preview, and share GSAP animations with ease. This open-source application provides a GUI for building complex GSAP timelines visually, without writing code directly. It's perfect for animators, designers, and developers looking to streamline their animation workflow.
 
-First, run the development server:
+[Live Demo](https://gsap-editor.dymytrii.dev/)
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## ✨ Features
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- **Visual Timeline Editing**: A visual representation of your animation timeline.
+- **Keyframe Management**: Easily add, edit, and delete keyframes.
+- **Drag & Drop and Resize**: Intuitively adjust keyframe timing and duration directly on the timeline.
+- **Precise Controls**: Set keyframe properties like delay, duration, and easing functions.
+- **Rich Transforms**: Apply multiple transforms per keyframe, including:
+  - Move (X, Y)
+  - Scale (X, Y)
+  - Rotate
+  - Skew (X, Y)
+  - Opacity
+  - CSS Filters (Blur, Brightness, etc.)
+- **Live Preview**: Instantly see your animations come to life in the preview pane.
+- **Customizable Target Object**: Choose from basic shapes or a library of over 50 icons to animate.
+- **Playback Controls**: Play, pause, loop, and yo-yo your animations.
+- **Zoomable Timeline**: Zoom in for precise edits or zoom out for a full overview.
+- **Import/Export**: Save your work as a JSON file and load it back in later.
+- **Code Generation**: Export your timeline as ready-to-use GSAP code.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🤝 Contributing
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Contributions are what make the open-source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
 
-## Learn More
+1.  Fork the Project
+2.  Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3.  Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4.  Push to the Branch (`git push origin feature/AmazingFeature`)
+5.  Open a Pull Request
 
-To learn more about Next.js, take a look at the following resources:
+## 📄 License
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Distributed under the MIT License. See `LICENSE` for more information.

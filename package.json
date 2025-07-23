@@ -1,6 +1,10 @@
 {
   "name": "timeline-editor",
-  "version": "0.1.0",
+  "version": "1.0",
+  "description": "Create, edit, preview, and share GSAP animations with ease.",
+  "author": "Dymytrii Dev",
+  "homepage": "https://gsap-editor.dymytrii.dev/",
+  "license": "MIT",
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
