@@ -120,7 +120,7 @@ export function Header() {
           </Button>
 
           <Button
-            variant="outline"
+            variant="ghost"
             size="sm"
             className="gap-2"
             onClick={() =>

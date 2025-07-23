@@ -1,31 +1,82 @@
-'use client';
+"use client";
 
-import { useState, useRef, useEffect } from 'react';
-import { Play, Pause, Square, Plus, ZoomIn, ZoomOut, Trash2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useTimelineStore, type Keyframe, type Transform, type TransformType } from '@/stores/timeline-store';
+import { useState, useRef, useEffect } from "react";
+import {
+  Play,
+  Pause,
+  Square,
+  Plus,
+  ZoomIn,
+  ZoomOut,
+  Trash2,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  useTimelineStore,
+  type Keyframe,
+  type Transform,
+  type TransformType,
+} from "@/stores/timeline-store";
 
 const GSAP_EASINGS = [
-  'none', 'power1.in', 'power1.out', 'power1.inOut',
-  'power2.in', 'power2.out', 'power2.inOut',
-  'power3.in', 'power3.out', 'power3.inOut',
-  'power4.in', 'power4.out', 'power4.inOut',
-  'back.in', 'back.out', 'back.inOut',
-  'elastic.in', 'elastic.out', 'elastic.inOut',
-  'bounce.in', 'bounce.out', 'bounce.inOut',
-  'circ.in', 'circ.out', 'circ.inOut',
-  'expo.in', 'expo.out', 'expo.inOut',
-  'sine.in', 'sine.out', 'sine.inOut'
+  "none",
+  "power1.in",
+  "power1.out",
+  "power1.inOut",
+  "power2.in",
+  "power2.out",
+  "power2.inOut",
+  "power3.in",
+  "power3.out",
+  "power3.inOut",
+  "power4.in",
+  "power4.out",
+  "power4.inOut",
+  "back.in",
+  "back.out",
+  "back.inOut",
+  "elastic.in",
+  "elastic.out",
+  "elastic.inOut",
+  "bounce.in",
+  "bounce.out",
+  "bounce.inOut",
+  "circ.in",
+  "circ.out",
+  "circ.inOut",
+  "expo.in",
+  "expo.out",
+  "expo.inOut",
+  "sine.in",
+  "sine.out",
+  "sine.inOut",
 ];
 
 const CSS_FILTERS = [
-  'blur', 'brightness', 'contrast', 'grayscale', 'hue-rotate',
-  'invert', 'opacity', 'saturate', 'sepia'
+  "blur",
+  "brightness",
+  "contrast",
+  "grayscale",
+  "hue-rotate",
+  "invert",
+  "opacity",
+  "saturate",
+  "sepia",
 ];
 
 export function TimelineEditor() {
@@ -39,7 +90,7 @@ export function TimelineEditor() {
     currentTime,
     setCurrentTime,
     zoom,
-    setZoom
+    setZoom,
   } = useTimelineStore();
 
   const [isAddKeyframeOpen, setIsAddKeyframeOpen] = useState(false);
@@ -47,13 +98,13 @@ export function TimelineEditor() {
   const [keyframeForm, setKeyframeForm] = useState({
     delay: 0,
     duration: 1000,
-    easing: 'power2.inOut',
-    transforms: [] as Transform[]
+    easing: "power2.inOut",
+    transforms: [] as Transform[],
   });
-  
+
   // Drag and resize state
   const [dragOperation, setDragOperation] = useState<{
-    type: 'move' | 'resize';
+    type: "move" | "resize";
     keyframeId: string;
     startX: number;
     startDelay: number;
@@ -63,93 +114,113 @@ export function TimelineEditor() {
 
   const timelineRef = useRef<HTMLDivElement>(null);
   const activeTimeline = getActiveTimeline();
-  
+
   // Handle mouse events for drag and resize
-  const handleMouseDown = (e: React.MouseEvent, keyframe: Keyframe, type: 'move' | 'resize') => {
+  const handleMouseDown = (
+    e: React.MouseEvent,
+    keyframe: Keyframe,
+    type: "move" | "resize"
+  ) => {
     e.stopPropagation();
     if (!timelineRef.current) return;
-    
+
     const rect = timelineRef.current.getBoundingClientRect();
     const startX = e.clientX - rect.left;
-    
+
     setDragOperation({
       type,
       keyframeId: keyframe.id,
       startX,
       startDelay: keyframe.delay,
-      startDuration: keyframe.duration
+      startDuration: keyframe.duration,
     });
     setIsDragging(true);
   };
-  
+
   // Helper function to snap value to grid with minimum step size
-  const snapToGrid = (value: number, stepSize: number, isTime: boolean = false) => {
+  const snapToGrid = (
+    value: number,
+    stepSize: number,
+    isTime: boolean = false
+  ) => {
     // Convert to ms for time values to ensure precision
     const valueInMs = isTime ? value * 1000 : value;
     const stepSizeInMs = isTime ? stepSize : stepSize;
-    
+
     // Snap to nearest step with minimum of stepSize
     const snapped = Math.round(valueInMs / stepSizeInMs) * stepSizeInMs;
-    
+
     // Convert back to seconds for time values
     return isTime ? snapped / 1000 : snapped;
   };
-  
+
   const handleMouseMove = (e: MouseEvent) => {
-    if (!isDragging || !dragOperation || !timelineRef.current || !activeTimeline) return;
-    
+    if (
+      !isDragging ||
+      !dragOperation ||
+      !timelineRef.current ||
+      !activeTimeline
+    )
+      return;
+
     const rect = timelineRef.current.getBoundingClientRect();
     const currentX = e.clientX - rect.left;
     const deltaX = currentX - dragOperation.startX;
-    
+
     // Convert pixel delta to time delta based on zoom level and total duration
-    const pixelsPerSecond = (rect.width / totalDuration);
+    const pixelsPerSecond = rect.width / totalDuration;
     const timeDelta = deltaX / pixelsPerSecond;
-    
-    const keyframe = activeTimeline.keyframes.find(k => k.id === dragOperation.keyframeId);
+
+    const keyframe = activeTimeline.keyframes.find(
+      (k) => k.id === dragOperation.keyframeId
+    );
     if (!keyframe) return;
-    
+
     // Minimum step size in milliseconds
     const minStepMs = 50;
-    
-    if (dragOperation.type === 'move') {
+
+    if (dragOperation.type === "move") {
       // Update delay (position) with snapping
       const rawNewDelay = Math.max(0, dragOperation.startDelay + timeDelta);
       // Snap to grid with minimum step of 50ms (0.05s)
       const newDelay = snapToGrid(rawNewDelay, minStepMs / 1000, true);
       updateKeyframe(activeTimeline.id, keyframe.id, { delay: newDelay });
-    } else if (dragOperation.type === 'resize') {
+    } else if (dragOperation.type === "resize") {
       // Update duration with snapping
-      const rawNewDuration = Math.max(minStepMs, dragOperation.startDuration + (timeDelta * 1000));
+      const rawNewDuration = Math.max(
+        minStepMs,
+        dragOperation.startDuration + timeDelta * 1000
+      );
       // Snap to grid with minimum step of 50ms
       const newDuration = snapToGrid(rawNewDuration, minStepMs, false);
       updateKeyframe(activeTimeline.id, keyframe.id, { duration: newDuration });
     }
   };
-  
+
   const handleMouseUp = () => {
     setDragOperation(null);
     setIsDragging(false);
   };
-  
+
   // Add and remove event listeners
   useEffect(() => {
     if (isDragging) {
-      window.addEventListener('mousemove', handleMouseMove);
-      window.addEventListener('mouseup', handleMouseUp);
+      window.addEventListener("mousemove", handleMouseMove);
+      window.addEventListener("mouseup", handleMouseUp);
     }
-    
+
     return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
     };
   }, [isDragging, dragOperation]);
 
   const getLastKeyframeEnd = () => {
     if (!activeTimeline || activeTimeline.keyframes.length === 0) return 0;
-    const lastKeyframe = activeTimeline.keyframes.reduce((latest, current) => 
-      (current.delay + current.duration / 1000) > (latest.delay + latest.duration / 1000) 
-        ? current 
+    const lastKeyframe = activeTimeline.keyframes.reduce((latest, current) =>
+      current.delay + current.duration / 1000 >
+      latest.delay + latest.duration / 1000
+        ? current
         : latest
     );
     return lastKeyframe.delay + lastKeyframe.duration / 1000;
@@ -159,47 +230,52 @@ export function TimelineEditor() {
     const newTransform: Transform = {
       id: Math.random().toString(36).substr(2, 9),
       type,
-      values: getDefaultTransformValues(type)
+      values: getDefaultTransformValues(type),
     };
-    
-    setKeyframeForm(prev => ({
+
+    setKeyframeForm((prev) => ({
       ...prev,
-      transforms: [...prev.transforms, newTransform]
+      transforms: [...prev.transforms, newTransform],
     }));
   };
 
-  const getDefaultTransformValues = (type: TransformType): Record<string, number | string> => {
+  const getDefaultTransformValues = (
+    type: TransformType
+  ): Record<string, number | string> => {
     switch (type) {
-      case 'move':
+      case "move":
         return { x: 0, y: 0 };
-      case 'rotate':
+      case "rotate":
         return { rotation: 0 };
-      case 'opacity':
+      case "opacity":
         return { opacity: 1 };
-      case 'skew':
+      case "skew":
         return { skewX: 0, skewY: 0 };
-      case 'scale':
+      case "scale":
         return { scaleX: 1, scaleY: 1 };
-      case 'filter':
-        return { filter: 'blur', value: 0 };
+      case "filter":
+        return { filter: "blur", value: 0 };
       default:
         return {};
     }
   };
 
-  const updateTransform = (transformId: string, values: Record<string, number | string>) => {
-    setKeyframeForm(prev => ({
+  const updateTransform = (
+    transformId: string,
+    values: Record<string, number | string>
+  ) => {
+    setKeyframeForm((prev) => ({
       ...prev,
-      transforms: prev.transforms.map(t => 
+      transforms: prev.transforms.map((t) =>
         t.id === transformId ? { ...t, values } : t
-      )
+      ),
     }));
   };
 
   const removeTransform = (transformId: string) => {
-    setKeyframeForm(prev => ({
+    setKeyframeForm((prev) => ({
       ...prev,
-      transforms: prev.transforms.filter(t => t.id !== transformId)
+      transforms: prev.transforms.filter((t) => t.id !== transformId),
     }));
   };
 
@@ -210,7 +286,7 @@ export function TimelineEditor() {
       delay: keyframeForm.delay,
       duration: keyframeForm.duration,
       easing: keyframeForm.easing,
-      transforms: keyframeForm.transforms
+      transforms: keyframeForm.transforms,
     };
 
     if (editingKeyframe) {
@@ -228,8 +304,8 @@ export function TimelineEditor() {
     setKeyframeForm({
       delay: getLastKeyframeEnd(),
       duration: 1000,
-      easing: 'power2.inOut',
-      transforms: []
+      easing: "power2.inOut",
+      transforms: [],
     });
   };
 
@@ -239,14 +315,14 @@ export function TimelineEditor() {
       delay: keyframe.delay,
       duration: keyframe.duration,
       easing: keyframe.easing,
-      transforms: keyframe.transforms
+      transforms: keyframe.transforms,
     });
     setIsAddKeyframeOpen(true);
   };
 
   const renderTransformFields = (transform: Transform) => {
     switch (transform.type) {
-      case 'move':
+      case "move":
         return (
           <div className="grid grid-cols-2 gap-2">
             <div>
@@ -254,10 +330,12 @@ export function TimelineEditor() {
               <Input
                 type="number"
                 value={transform.values.x as number}
-                onChange={(e) => updateTransform(transform.id, { 
-                  ...transform.values, 
-                  x: parseFloat(e.target.value) || 0 
-                })}
+                onChange={(e) =>
+                  updateTransform(transform.id, {
+                    ...transform.values,
+                    x: parseFloat(e.target.value) || 0,
+                  })
+                }
               />
             </div>
             <div>
@@ -265,15 +343,17 @@ export function TimelineEditor() {
               <Input
                 type="number"
                 value={transform.values.y as number}
-                onChange={(e) => updateTransform(transform.id, { 
-                  ...transform.values, 
-                  y: parseFloat(e.target.value) || 0 
-                })}
+                onChange={(e) =>
+                  updateTransform(transform.id, {
+                    ...transform.values,
+                    y: parseFloat(e.target.value) || 0,
+                  })
+                }
               />
             </div>
           </div>
         );
-      case 'scale':
+      case "scale":
         return (
           <div className="grid grid-cols-2 gap-2">
             <div>
@@ -282,10 +362,12 @@ export function TimelineEditor() {
                 type="number"
                 step="0.1"
                 value={transform.values.scaleX as number}
-                onChange={(e) => updateTransform(transform.id, { 
-                  ...transform.values, 
-                  scaleX: parseFloat(e.target.value) || 1 
-                })}
+                onChange={(e) =>
+                  updateTransform(transform.id, {
+                    ...transform.values,
+                    scaleX: parseFloat(e.target.value) || 1,
+                  })
+                }
               />
             </div>
             <div>
@@ -294,28 +376,32 @@ export function TimelineEditor() {
                 type="number"
                 step="0.1"
                 value={transform.values.scaleY as number}
-                onChange={(e) => updateTransform(transform.id, { 
-                  ...transform.values, 
-                  scaleY: parseFloat(e.target.value) || 1 
-                })}
+                onChange={(e) =>
+                  updateTransform(transform.id, {
+                    ...transform.values,
+                    scaleY: parseFloat(e.target.value) || 1,
+                  })
+                }
               />
             </div>
           </div>
         );
-      case 'rotate':
+      case "rotate":
         return (
           <div>
             <Label>Rotation (degrees)</Label>
             <Input
               type="number"
               value={transform.values.rotation as number}
-              onChange={(e) => updateTransform(transform.id, { 
-                rotation: parseFloat(e.target.value) || 0 
-              })}
+              onChange={(e) =>
+                updateTransform(transform.id, {
+                  rotation: parseFloat(e.target.value) || 0,
+                })
+              }
             />
           </div>
         );
-      case 'opacity':
+      case "opacity":
         return (
           <div>
             <Label>Opacity (0-1)</Label>
@@ -325,13 +411,15 @@ export function TimelineEditor() {
               min="0"
               max="1"
               value={transform.values.opacity as number}
-              onChange={(e) => updateTransform(transform.id, { 
-                opacity: parseFloat(e.target.value) || 0 
-              })}
+              onChange={(e) =>
+                updateTransform(transform.id, {
+                  opacity: parseFloat(e.target.value) || 0,
+                })
+              }
             />
           </div>
         );
-      case 'skew':
+      case "skew":
         return (
           <div className="grid grid-cols-2 gap-2">
             <div>
@@ -339,10 +427,12 @@ export function TimelineEditor() {
               <Input
                 type="number"
                 value={transform.values.skewX as number}
-                onChange={(e) => updateTransform(transform.id, { 
-                  ...transform.values, 
-                  skewX: parseFloat(e.target.value) || 0 
-                })}
+                onChange={(e) =>
+                  updateTransform(transform.id, {
+                    ...transform.values,
+                    skewX: parseFloat(e.target.value) || 0,
+                  })
+                }
               />
             </div>
             <div>
@@ -350,31 +440,35 @@ export function TimelineEditor() {
               <Input
                 type="number"
                 value={transform.values.skewY as number}
-                onChange={(e) => updateTransform(transform.id, { 
-                  ...transform.values, 
-                  skewY: parseFloat(e.target.value) || 0 
-                })}
+                onChange={(e) =>
+                  updateTransform(transform.id, {
+                    ...transform.values,
+                    skewY: parseFloat(e.target.value) || 0,
+                  })
+                }
               />
             </div>
           </div>
         );
-      case 'filter':
+      case "filter":
         return (
           <div className="space-y-2">
             <div>
               <Label>Filter Type</Label>
               <Select
                 value={transform.values.filter as string}
-                onValueChange={(value) => updateTransform(transform.id, { 
-                  ...transform.values, 
-                  filter: value 
-                })}
+                onValueChange={(value) =>
+                  updateTransform(transform.id, {
+                    ...transform.values,
+                    filter: value,
+                  })
+                }
               >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {CSS_FILTERS.map(filter => (
+                  {CSS_FILTERS.map((filter) => (
                     <SelectItem key={filter} value={filter}>
                       {filter}
                     </SelectItem>
@@ -387,10 +481,12 @@ export function TimelineEditor() {
               <Input
                 type="number"
                 value={transform.values.value as number}
-                onChange={(e) => updateTransform(transform.id, { 
-                  ...transform.values, 
-                  value: parseFloat(e.target.value) || 0 
-                })}
+                onChange={(e) =>
+                  updateTransform(transform.id, {
+                    ...transform.values,
+                    value: parseFloat(e.target.value) || 0,
+                  })
+                }
               />
             </div>
           </div>
@@ -414,14 +510,18 @@ export function TimelineEditor() {
     <div className="flex-1 flex flex-col">
       {/* Controls */}
       <div className="border-b border-border p-4">
-        <div className="flex items-center gap-4">
+        <div className="flex justify-between items-center gap-4">
           <div className="flex gap-2">
             <Button
               size="sm"
-              variant={isPlaying ? "default" : "outline"}
+              variant={isPlaying ? "outline" : "default"}
               onClick={() => setPlaying(!isPlaying)}
             >
-              {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+              {isPlaying ? (
+                <Pause className="h-4 w-4" />
+              ) : (
+                <Play className="h-4 w-4" />
+              )}
             </Button>
             <Button
               size="sm"
@@ -436,23 +536,38 @@ export function TimelineEditor() {
           </div>
 
           <div className="flex items-center gap-2">
-            <Button size="sm" variant="outline" onClick={() => setZoom(Math.max(0.5, zoom - 0.25))}>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setZoom(Math.max(0.5, zoom - 0.25))}
+            >
               <ZoomOut className="h-4 w-4" />
             </Button>
-            <span className="text-sm text-muted-foreground">{Math.round(zoom * 100)}%</span>
-            <Button size="sm" variant="outline" onClick={() => setZoom(Math.min(3, zoom + 0.25))}>
+            <span className="text-sm text-muted-foreground">
+              {Math.round(zoom * 100)}%
+            </span>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setZoom(Math.min(3, zoom + 0.25))}
+            >
               <ZoomIn className="h-4 w-4" />
             </Button>
           </div>
 
           <Popover open={isAddKeyframeOpen} onOpenChange={setIsAddKeyframeOpen}>
             <PopoverTrigger asChild>
-              <Button size="sm" className="gap-2" onClick={() => {
-                if (!isAddKeyframeOpen) {
-                  resetForm();
-                  setEditingKeyframe(null);
-                }
-              }}>
+              <Button
+                size="sm"
+                variant="outline"
+                className="gap-2"
+                onClick={() => {
+                  if (!isAddKeyframeOpen) {
+                    resetForm();
+                    setEditingKeyframe(null);
+                  }
+                }}
+              >
                 <Plus className="h-4 w-4" />
                 Add Keyframe
               </Button>
@@ -460,9 +575,9 @@ export function TimelineEditor() {
             <PopoverContent className="w-96" align="start">
               <div className="space-y-4">
                 <h3 className="font-semibold">
-                  {editingKeyframe ? 'Edit Keyframe' : 'Add Keyframe'}
+                  {editingKeyframe ? "Edit Keyframe" : "Add Keyframe"}
                 </h3>
-                
+
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label>Delay (s)</Label>
@@ -471,10 +586,12 @@ export function TimelineEditor() {
                       step="0.01"
                       min="0"
                       value={keyframeForm.delay}
-                      onChange={(e) => setKeyframeForm(prev => ({ 
-                        ...prev, 
-                        delay: parseFloat(e.target.value) || 0 
-                      }))}
+                      onChange={(e) =>
+                        setKeyframeForm((prev) => ({
+                          ...prev,
+                          delay: parseFloat(e.target.value) || 0,
+                        }))
+                      }
                     />
                   </div>
                   <div>
@@ -482,10 +599,12 @@ export function TimelineEditor() {
                     <Input
                       type="number"
                       value={keyframeForm.duration}
-                      onChange={(e) => setKeyframeForm(prev => ({ 
-                        ...prev, 
-                        duration: parseInt(e.target.value) || 1000 
-                      }))}
+                      onChange={(e) =>
+                        setKeyframeForm((prev) => ({
+                          ...prev,
+                          duration: parseInt(e.target.value) || 1000,
+                        }))
+                      }
                     />
                   </div>
                 </div>
@@ -494,13 +613,15 @@ export function TimelineEditor() {
                   <Label>Easing</Label>
                   <Select
                     value={keyframeForm.easing}
-                    onValueChange={(value) => setKeyframeForm(prev => ({ ...prev, easing: value }))}
+                    onValueChange={(value) =>
+                      setKeyframeForm((prev) => ({ ...prev, easing: value }))
+                    }
                   >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {GSAP_EASINGS.map(easing => (
+                      {GSAP_EASINGS.map((easing) => (
                         <SelectItem key={easing} value={easing}>
                           {easing}
                         </SelectItem>
@@ -512,16 +633,20 @@ export function TimelineEditor() {
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <Label>Transforms</Label>
-                    <Select onValueChange={(value: TransformType) => handleAddTransform(value)}>
+                    <Select
+                      onValueChange={(value: TransformType) =>
+                        handleAddTransform(value)
+                      }
+                    >
                       <SelectTrigger className="w-40">
                         <SelectValue placeholder="Add Transform" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="move">Move</SelectItem>
+                        <SelectItem value="scale">Scale</SelectItem>
                         <SelectItem value="rotate">Rotate</SelectItem>
                         <SelectItem value="opacity">Opacity</SelectItem>
                         <SelectItem value="skew">Skew</SelectItem>
-                        <SelectItem value="scale">Scale</SelectItem>
                         <SelectItem value="filter">Filter</SelectItem>
                       </SelectContent>
                     </Select>
@@ -531,7 +656,9 @@ export function TimelineEditor() {
                     {keyframeForm.transforms.map((transform) => (
                       <Card key={transform.id} className="p-3">
                         <div className="flex items-center justify-between mb-2">
-                          <span className="text-sm font-medium capitalize">{transform.type}</span>
+                          <span className="text-sm font-medium capitalize">
+                            {transform.type}
+                          </span>
                           <Button
                             size="sm"
                             variant="ghost"
@@ -548,10 +675,10 @@ export function TimelineEditor() {
 
                 <div className="flex gap-2 pt-4">
                   <Button onClick={handleSaveKeyframe} className="flex-1">
-                    {editingKeyframe ? 'Update' : 'Add'} Keyframe
+                    {editingKeyframe ? "Update" : "Add"} Keyframe
                   </Button>
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     onClick={() => {
                       setIsAddKeyframeOpen(false);
                       setEditingKeyframe(null);
@@ -570,7 +697,7 @@ export function TimelineEditor() {
       {/* Timeline */}
       <div className="flex-1 p-4">
         <div className="relative bg-muted/20 rounded-lg p-4 min-h-32">
-          <div 
+          <div
             ref={timelineRef}
             className="relative h-16 bg-card rounded border"
             style={{ width: `${totalDuration * 100 * zoom}px` }}
@@ -600,11 +727,19 @@ export function TimelineEditor() {
             {activeTimeline.keyframes.map((keyframe) => (
               <div
                 key={keyframe.id}
-                className={`absolute top-2 bottom-2 bg-primary/80 rounded hover:bg-primary group ${isDragging && dragOperation?.keyframeId === keyframe.id ? 'opacity-70' : ''}`}
+                className={`absolute top-2 bottom-2 bg-primary/80 rounded hover:bg-primary group ${
+                  isDragging && dragOperation?.keyframeId === keyframe.id
+                    ? "opacity-70"
+                    : ""
+                }`}
                 style={{
                   left: `${(keyframe.delay / totalDuration) * 100}%`,
-                  width: `${((keyframe.duration / 1000) / totalDuration) * 100}%`,
-                  cursor: isDragging ? (dragOperation?.type === 'move' ? 'grabbing' : 'ew-resize') : 'pointer'
+                  width: `${(keyframe.duration / 1000 / totalDuration) * 100}%`,
+                  cursor: isDragging
+                    ? dragOperation?.type === "move"
+                      ? "grabbing"
+                      : "ew-resize"
+                    : "pointer",
                 }}
                 onClick={(e) => {
                   if (!isDragging) handleEditKeyframe(keyframe);
@@ -613,23 +748,32 @@ export function TimelineEditor() {
                   // If clicking near the right edge, initiate resize, otherwise move
                   const rect = e.currentTarget.getBoundingClientRect();
                   const rightEdgeThreshold = 10; // pixels from right edge to trigger resize
-                  
+
                   if (e.clientX > rect.right - rightEdgeThreshold) {
-                    handleMouseDown(e, keyframe, 'resize');
+                    handleMouseDown(e, keyframe, "resize");
                   } else {
-                    handleMouseDown(e, keyframe, 'move');
+                    handleMouseDown(e, keyframe, "move");
                   }
                 }}
               >
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="text-xs text-primary-foreground font-medium">
+                  <span
+                    className="text-xs text-primary-foreground font-medium"
+                    suppressHydrationWarning
+                  >
                     {keyframe.transforms.length}
                   </span>
                 </div>
                 {/* Resize handle */}
-                <div 
-                  className={`absolute top-0 bottom-0 right-0 w-2 cursor-ew-resize ${isDragging && dragOperation?.keyframeId === keyframe.id && dragOperation?.type === 'resize' ? 'bg-white/30' : ''}`}
-                  onMouseDown={(e) => handleMouseDown(e, keyframe, 'resize')}
+                <div
+                  className={`absolute top-0 bottom-0 right-0 w-2 cursor-ew-resize ${
+                    isDragging &&
+                    dragOperation?.keyframeId === keyframe.id &&
+                    dragOperation?.type === "resize"
+                      ? "bg-white/30"
+                      : ""
+                  }`}
+                  onMouseDown={(e) => handleMouseDown(e, keyframe, "resize")}
                 />
                 <div className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity">
                   <Button
