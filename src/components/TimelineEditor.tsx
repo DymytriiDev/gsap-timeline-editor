@@ -759,7 +759,7 @@ export function TimelineEditor() {
                 <div className="absolute inset-0 flex flex-col p-1 overflow-hidden">
                   <div className="flex justify-start items-center">
                     <span
-                      className="text-xs font-medium text-primary"
+                      className="text-xxs font-medium text-primary"
                       suppressHydrationWarning
                     >
                       {keyframe.duration}ms / {keyframe.easing}
@@ -767,7 +767,7 @@ export function TimelineEditor() {
                   </div>
                   <div className="flex items-center mt-1">
                     <span
-                      className="text-xs text-primary font-medium bg-primary/10 px-1 rounded"
+                      className="text-xxs text-primary font-medium bg-primary/10 px-1 rounded"
                       suppressHydrationWarning
                     >
                       {keyframe.transforms.length} transforms
